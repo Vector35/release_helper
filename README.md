@@ -6,7 +6,7 @@ We recommend adding it as a submodule to your existing plugin so that you can ea
 
 ```
 $ cd vector35/snippets
-$ git submodule add https://github.com/Vector35/release_helper --name release
+$ git submodule add https://github.com/Vector35/release_helper release
 $ git submodule update --init --recursive
 $ chmod +x release/do_release.py
 $ pip3 install githubrelease gitpython
