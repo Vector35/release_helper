@@ -7,6 +7,7 @@ from sys import exit
 from os import path
 from argparse import ArgumentParser
 from subprocess import run
+from pathlib import Path
 '''WARNING: IF YOU DO NOT UPDATE YOUR README.md USING generate_plugininfo.py 
 THIS PLUGIN WILL OVERWRITE IT!'''
 
@@ -23,9 +24,12 @@ if repo.is_dirty() and not args.dirtyoverride:
 	print("Cowardly refusing to do anything as the plugin repository is currently dirty.")
 	exit(-1)
 
-if not path.isfile("./generate_plugininfo.py"):
-	print("Missing ./generate_plugininfo.py.")
-	exit(-1)
+generator = Path(__file__).parents[0] / "generate_plugininfo.py"
+if not generator.is_file():
+	generator = Path("./generate_plugininfo.py")
+	if not generator.is_file():
+		print("Unable to find ./generate_plugininfo.py.")
+		exit(-1)
 
 with open('plugin.json') as plugin:
 	data = load(plugin)
@@ -34,7 +38,7 @@ def update_version(data):
 	print(f"Updating plugin with new version {data['version']}")
 	with open('plugin.json', 'w') as plugin:
 		dump(data, plugin)
-	run(["./generate_plugininfo.py", "-r", "-f"], check=True)
+	run([generator, "-r", "-f"], check=True)
 	repo.index.add('plugin.json')
 	repo.index.add('README.md')
 	if args.description == "":
