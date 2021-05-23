@@ -37,7 +37,7 @@ with open('plugin.json') as plugin:
 def update_version(data):
 	print(f"Updating plugin with new version {data['version']}")
 	with open('plugin.json', 'w') as plugin:
-		dump(data, plugin)
+		dump(data, plugin, indent=4)
 	run([generator, "-r", "-f"], check=True)
 	repo.index.add('plugin.json')
 	repo.index.add('README.md')
