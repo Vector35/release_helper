@@ -13,6 +13,7 @@ THIS PLUGIN WILL OVERWRITE IT!'''
 
 parser = ArgumentParser()
 parser.add_argument("-d", "--description", help="Description for the new release", action="store", dest="description", default="")
+parser.add_argument("-s", "--subdir", help="Specify a subdirectory", action="store", dest="subdir", default="")
 parser.add_argument("-v", "--version", help="New version string", action="store", dest="new_version", default="")
 parser.add_argument("--force", help="Override the repository dirty check", action="store_true", dest="dirtyoverride", default=False)
 args = parser.parse_args()
@@ -31,15 +32,19 @@ if not generator.is_file():
 		print("Unable to find ./generate_plugininfo.py.")
 		exit(-1)
 
-with open('plugin.json') as plugin:
+if args.subdir:
+    pluginfile = path.join(args.subdir, 'plugin.json')
+else:
+    pluginfile = 'plugin.json'
+with open(pluginfile) as plugin:
 	data = load(plugin)
 
 def update_version(data):
 	print(f"Updating plugin with new version {data['version']}")
-	with open('plugin.json', 'w') as plugin:
+	with open(pluginfile, 'w') as plugin:
 		dump(data, plugin, indent=4)
 	run([generator, "-r", "-f"], check=True)
-	repo.index.add('plugin.json')
+	repo.index.add(pluginfile)
 	repo.index.add('README.md')
 	if args.description == "":
 		repo.index.commit(f"Updating to {data['version']}")
