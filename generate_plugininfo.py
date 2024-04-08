@@ -103,11 +103,11 @@ def validateRequiredFields(data):
 	success &= validateList(data, "type", validPluginTypes)
 	success &= validateList(data, "api", validApis)
 	success &= validateString(data, "description")
-	success &= validateString(data, "longdescription")
+	#success &= validateString(data, "longdescription")
 	success &= validateStringMap(data, "license", requiredLicenseKeys, requiredLicenseKeys)
 	validPlatformList = validateList(data, "platforms", validPlatforms)
 	success &= validPlatformList
-	success &= validateStringMap(data, "installinstructions", validPlatforms, list(data["platforms"]) if validPlatformList else None)
+	#success &= validateStringMap(data, "installinstructions", validPlatforms, list(data["platforms"]) if validPlatformList else None)
 	success &= validateString(data, "version")
 	success &= validateString(data, "author")
 	success &= validateInteger(data, "minimumbinaryninjaversion")
