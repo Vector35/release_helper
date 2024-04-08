@@ -221,6 +221,11 @@ This plugin is released under a {license} license.
 
 def generateReadme(plugin):
 		install = None
+		if "longdescription" in plugin:
+			longdescription = plugin["longdescription"]
+		else:
+			longdescription = ""
+
 		if "installinstructions" in plugin:
 			install = "\n\n## Installation Instructions"
 			for platform in plugin["installinstructions"]:
@@ -237,7 +242,7 @@ def generateReadme(plugin):
 
 		return readmeTemplate.format(name=plugin["name"], version=plugin["version"],
 				author=plugin["author"], description=plugin["description"],
-				longdescription=plugin["longdescription"], install=install,
+				longdescription=longdescription, install=install,
 				minimum=plugin["minimumbinaryninjaversion"], dependencies=dependencies,
 				license=plugin["license"]["name"], metadataVersion=plugin["pluginmetadataversion"])
 
