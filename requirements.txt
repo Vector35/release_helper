@@ -1,2 +1,2 @@
 gitpython
-githubrelease
+pygithub

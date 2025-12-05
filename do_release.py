@@ -2,7 +2,8 @@
 #Little utility to automatically do a new release.
 from git import Repo
 from json import load, dump
-from github_release import gh_release_create
+from github import Github, Auth
+import os
 from sys import exit
 from os import path
 from argparse import ArgumentParser
@@ -21,7 +22,18 @@ args = parser.parse_args()
 #TODO
 
 repo = Repo(".")
-reponame = list(repo.remotes.origin.urls)[0].split(':')[1].split('.')[0]
+origin_url = list(repo.remotes.origin.urls)[0]
+# Parse repository name from either SSH or HTTPS format
+if origin_url.startswith('https://') or origin_url.startswith('http://'):
+	# HTTPS format: https://github.com/owner/repo.git
+	reponame = origin_url.split('github.com/')[-1].replace('.git', '')
+elif ':' in origin_url:
+	# SSH format: git@github.com:owner/repo.git
+	reponame = origin_url.split(':')[1].replace('.git', '')
+else:
+	print(f"Error: Unable to parse repository name from URL: {origin_url}")
+	exit(-1)
+print(f"Repository: {reponame}")
 if repo.is_dirty() and not args.dirtyoverride:
 	print("Cowardly refusing to do anything as the plugin repository is currently dirty.")
 	exit(-1)
@@ -68,7 +80,7 @@ def update_version(data):
 				print(f"Replacing version {old_version} with {data['version']} in README.md")
 				updated_content = re.sub(
 					r'(# .+?\(v)[\d\.]+(\))',
-					f'\\1{data["version"]}\\2',
+					rf'\g<1>{data["version"]}\g<2>',
 					readme_content
 				)
 				
@@ -114,4 +126,29 @@ new_tag = repo.create_tag(data['version'])
 # Push
 repo.remotes.origin.push(data['version'])
 # Create release
-gh_release_create(reponame, data['version'], publish=True, name="%s v%s" % (data['name'], data['version']))
+# Get GitHub token from environment variable
+github_token = os.environ.get('GITHUB_TOKEN')
+if not github_token:
+	print("Error: GITHUB_TOKEN environment variable not set")
+	print("Please set your GitHub personal access token: export GITHUB_TOKEN='your_token'")
+	exit(-1)
+
+try:
+	auth = Auth.Token(github_token)
+	g = Github(auth=auth)
+	repo_obj = g.get_repo(reponame)
+except Exception as e:
+	print(f"Error accessing repository '{reponame}': {e}")
+	print("Please check:")
+	print("1. Your GITHUB_TOKEN has 'repo' scope permissions")
+	print("2. The repository name is correct")
+	print("3. You have access to the repository")
+	exit(-1)
+release = repo_obj.create_git_release(
+	tag=data['version'],
+	name="%s v%s" % (data['name'], data['version']),
+	message=args.description if args.description else f"Release {data['version']}",
+	draft=False,
+	prerelease=False
+)
+print(f"Created release: {release.html_url}")
